@@ -11,7 +11,7 @@ It includes:
 
 ## Configure
 
-Use the `VAGRANT_DEFAULT_PROVIDER` environment variable to the desired provider
+Use the `VAGRANT_DEFAULT_PROVIDER` environment variable to set the desired provider
 
 E.g.:
 ```
