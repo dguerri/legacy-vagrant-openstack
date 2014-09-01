@@ -1,0 +1,53 @@
+{
+  "machines" : {
+    "controller" : {
+      "box_name" : "trusty64",
+      "vcpus" : 2,
+      "ram" : 2048,
+      "networks" : {
+        "management" : {
+          "ip" : "10.0.0.11",
+          "netmask" : "255.255.255.0"
+        }
+      }
+    },
+    "network" : {
+      "box_name" : "trusty64",
+      "vcpus" : 1,
+      "ram" : 512,
+      "networks" : {
+        "management" : {
+          "ip" : "10.0.0.21",
+          "netmask" : "255.255.255.0"
+        },
+        "instance_tunnels" : {
+          "ip" : "10.0.1.21",
+          "netmask" : "255.255.255.0"
+        }
+      }
+    },
+    "compute1" : {
+      "box_name" : "trusty64",
+      "vcpus" : 2,
+      "ram" : 2048,
+      "networks" : {
+        "management" : {
+          "ip" : "10.0.0.31",
+          "netmask" : "255.255.255.0"
+        },
+        "instance_tunnels" : {
+          "ip" : "10.0.1.21",
+          "netmask" : "255.255.255.0"
+        }
+      }
+    }
+  },
+  "provisioning" : {
+    "ansible" : {
+      "playbook" : "ansible/playbook.yml",
+      "groups" : {
+        "all" : ["controller", "network", "compute1"]
+      }
+    }
+  }
+}

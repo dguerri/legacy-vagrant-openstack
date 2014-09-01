@@ -1,0 +1,11 @@
+[openstack]
+10.0.0.11
+10.0.0.21
+10.0.0.31
+
+[all:children]
+openstack
+
+[all:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_private_key_file=/Users/davide/.vagrant.d/insecure_private_key
