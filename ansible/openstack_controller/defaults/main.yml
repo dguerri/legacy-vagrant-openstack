@@ -1,2 +1,4 @@
 ---
 # defaults file for openstack_controller
+
+controller_name: controller

@@ -1,2 +1,5 @@
 ---
 # handlers file for openstack_controller
+
+- name: restart ntp
+  service: name=ntp state=restarted

@@ -1,2 +1,5 @@
 ---
 # tasks file for openstack_controller
+
+- name: install ntp
+  apt: name=ntp state=present
