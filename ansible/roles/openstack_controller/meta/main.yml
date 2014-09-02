@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Davide Guerri
+  description:
+  company: Hewlett Packard
+  license: Apache
+  min_ansible_version: 1.7
+
+dependencies:
+  - role: ntp
+  - role: mysql
+    mysql_root_password: "{{ MYSQL_ROOT }}"
+    mysql_bind_address: "{{ ansible_eth1.ipv4.address }}"
+    mysql_character_set_server: "utf8"
+    mysql_collation_server: "utf8_general_ci"
+    mysql_innodb_file_per_table: "innodb_file_per_table"
+

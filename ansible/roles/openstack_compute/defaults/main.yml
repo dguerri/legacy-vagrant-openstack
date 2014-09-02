@@ -1,4 +1,5 @@
 ---
 # defaults file for openstack_compute
 
-controller_name: controller
+controller_names:
+  - "controller"

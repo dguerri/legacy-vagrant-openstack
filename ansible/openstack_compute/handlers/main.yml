@@ -1,5 +1,0 @@
----
-# handlers file for openstack_compute
-
-- name: restart ntp
-  service: name=ntp state=restarted

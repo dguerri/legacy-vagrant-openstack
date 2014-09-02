@@ -1,0 +1,8 @@
+---
+# tasks file for openstack_compute
+
+- name: install juno repo
+  apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
+
+- name: update apt cache
+  apt: update_cache=yes cache_valid_time=7200

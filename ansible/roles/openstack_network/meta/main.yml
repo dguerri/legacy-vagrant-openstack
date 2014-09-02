@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: Davide Guerri
+  description:
+  company: Hewlett Packard
+  license: Apache
+  min_ansible_version: 1.7
+
+dependencies:
+  - role: ntp
+    ntp_servers: "{{ controller_names }}"

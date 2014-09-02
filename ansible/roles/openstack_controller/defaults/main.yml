@@ -1,0 +1,8 @@
+---
+# defaults file for openstack_controller
+
+controller_names:
+  - controller
+
+MYSQL_ROOT: mysql_root
+RABBIT_PASS: rabbit_pass
