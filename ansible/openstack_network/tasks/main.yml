@@ -6,10 +6,19 @@
 
 - name: remove default ntp servers
   lineinfile: dest=/etc/ntp.conf regexp="^server ((?!{{ controller_name }}).)*$" state=absent
+  sudo: True
   notify:
     - restart ntp
 
 - name: configure ntp server
   lineinfile: dest=/etc/ntp.conf line="server {{ controller_name }} iburst" state=present
+  sudo: True
   notify:
-  - restart ntp
+    - restart ntp
+
+- name: install juno repo
+  apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
+
+- name: update apt cache
+  apt: update_cache=yes cache_valid_time=7200
+

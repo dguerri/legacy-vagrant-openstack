@@ -18,5 +18,10 @@
 
 
 vagrant destroy -f >/dev/null 2>&1
-vagrant up 
+# Create all the VMs before starting the provisioning
+vagrant up --no-provision
+# As we used ansible.limit = 'all', we only need to provision one system
+vagrant provision controller
+
+# ansible-playbook --private-key=~/.vagrant.d/insecure_private_key -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -s -u vagrant ansible/playbook.yml
 

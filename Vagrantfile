@@ -100,6 +100,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.provision :ansible do |ansible|
         ansible.playbook = provisioning['ansible']['playbook']
         ansible.groups = provisioning['ansible']['groups']
+        ansible.limit = 'all'
+        ansible.sudo = true
+        ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
       end
   end
 

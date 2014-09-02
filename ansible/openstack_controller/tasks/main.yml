@@ -3,3 +3,31 @@
 
 - name: install ntp
   apt: name=ntp state=present
+
+# MySQL client and server packages, and the Python library
+- name: install mysql
+  apt: name={{ item }} state=present
+  with_items:
+    - python-mysqldb
+    - mysql-server
+
+# We assume eth1 is the management interface
+- name: configure mysql
+  ini_file: dest="{{ item.dest }}" section="{{ item.section }}"
+            option="{{ item.option }}" value="{{ item.value }}"
+  with_items:
+    - { dest: "/etc/mysql/my.cnf", section: "mysqld", option: "bind-address", value: "{{ ansible_eth1.ipv4.address }}" }
+    - { dest: "/etc/mysql/my.cnf", section: "mysqld", option: "innodb_file_per_table", value: "" }
+    - { dest: "/etc/mysql/my.cnf", section: "mysqld", option: "collation-server", value: "utf8_general_ci" }
+    - { dest: "/etc/mysql/my.cnf", section: "mysqld", option: "init-connect", value: "'SET NAMES utf8'" }
+    - { dest: "/etc/mysql/my.cnf", section: "mysqld", option: "character-set-server", value: "utf8" }
+  notify: restart mysql
+
+
+- name: install juno repo
+  apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
+
+- name: update apt cache
+  apt: update_cache=yes cache_valid_time=7200
+
+

@@ -1,12 +1,8 @@
 ---
 
 - hosts: all
-  sudo: True
 
   pre_tasks:
-  - name: update apt cache
-    apt: update_cache=yes cache_valid_time=7200
-
   - name: build hosts file
     lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ hostvars[item].ansible_all_ipv4_addresses[1] }} {{item}}" state=present
     when: hostvars[item].ansible_all_ipv4_addresses[1] is defined
