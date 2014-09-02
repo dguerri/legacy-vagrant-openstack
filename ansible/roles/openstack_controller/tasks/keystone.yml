@@ -1,0 +1,74 @@
+---
+
+- name: install keystone service and client
+  apt: name="{{ item }}" state=present
+  with_items:
+    - keystone
+    - python-keystoneclient
+
+- name: create openstack databases
+  mysql_db: name="{{ item }}"
+            state=present
+            login_host="{{controller_name }}"
+            login_user=root
+            login_password="{{ mysql_root }}"
+  with_items:
+    - keystone
+  notify:
+    - sync keystone db
+    - restart keystone
+
+- name: create openstack users
+  mysql_user: name="{{ item.name }}"
+              host="{{ item.host }}"
+              password="{{ item.password }}"
+              priv="{{ item.privs }}"
+              state=present
+              login_host="{{controller_name }}"
+              login_user=root
+              login_password="{{ mysql_root }}"
+  with_items:
+    - name:     keystone
+      host:     localhost
+      password: "{{ keystone_dbpass }}"
+      privs:    keystone.*:ALL
+    - name:     keystone
+      host:     "{{ controller_name }}"
+      password: "{{ keystone_dbpass }}"
+      privs:    keystone.*:ALL
+  notify:
+    - sync keystone db
+    - restart keystone
+
+- name: configure keystone
+  ini_file: dest=/etc/keystone/keystone.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  DEFAULT
+      option:   admin_token
+      value:    "{{ admin_token }}"
+    - section:  DEFAULT
+      option:   log_dir
+      value:    /var/log/keystone
+    - section:  database
+      option:   connection
+      value:    "mysql://keystone:{{ keystone_dbpass }}@{{ controller_name }}/keystone"
+  notify:
+    - restart keystone
+
+# Remove useless SQLite DB file
+- name: remove useless SQLite db file
+  file: path=/var/lib/keystone/keystone.db state=absent
+
+# Create a cronjob that removes expired token periodically
+- name: add cronjob that remove keystone expired token
+  cron: name="cronjob that remove keystone expired token"
+        minute=0
+        hour=*/1
+        user=keystone
+        job="/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
+        cron_file="remove-keystone-expired-tokens"
+
+

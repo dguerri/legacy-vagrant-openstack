@@ -1,2 +1,12 @@
 ---
 # handlers file for openstack_controller
+
+- name: sync keystone db
+  shell: keystone-manage db_sync keystone
+  sudo: yes
+  sudo_user: keystone
+  notify:
+    - restart keystone
+
+- name: restart keystone
+  service: name=keystone state=restarted

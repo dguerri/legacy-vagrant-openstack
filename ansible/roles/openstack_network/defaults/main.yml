@@ -1,5 +1,4 @@
 ---
 # defaults file for openstack_network
 
-controller_names:
-  - "controller"
+controller_name: "controller"

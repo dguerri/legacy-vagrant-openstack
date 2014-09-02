@@ -10,7 +10,11 @@
 
 - hosts: controller
   roles:
-    - openstack_controller
+    - role: openstack_controller
+      mysql_root: "{{ MYSQL_ROOT }}"
+      rabbit_pass: "{{ RABBIT_PASS }}"
+      admin_token: "{{ ADMIN_TOKEN }}"
+      keystone_dbpass: "{{ KEYSTONEDB_PASS }}"
 
 - hosts: network
   roles:

@@ -9,10 +9,6 @@
 - name: update apt cache
   apt: update_cache=yes cache_valid_time=7200
 
-# Install RabbitMQ
-- name: install rabbitmq
-  apt: name=rabbitmq-server state=present
-
-# Change RabbitMQ guest password
-- name: change rabbitmq guest password
-  command: "rabbitmqctl change_password guest {{ RABBIT_PASS }}"
+- include: rabbitmq.yml
+- include: mysql.yml
+- include: keystone.yml
