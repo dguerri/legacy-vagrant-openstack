@@ -1,3 +1,4 @@
+
 ---
 
 - name: Make sure mysql is restarted
@@ -9,7 +10,7 @@
     - keystone
     - python-keystoneclient
 
-- name: Create openstack databases
+- name: Create Keystone db
   mysql_db: name="{{ item }}"
             state=present
             login_host="{{ controller_name }}"
@@ -68,7 +69,7 @@
 
 # Create a cronjob that removes expired token periodically
 - name: Add cronjob that remove keystone expired token
-  cron: name="cronjob that remove keystone expired token"
+  cron: name="remove keystone expired token"
         minute=0
         hour=*/1
         user=keystone

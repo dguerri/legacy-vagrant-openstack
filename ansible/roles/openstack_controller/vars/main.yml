@@ -1,2 +1,12 @@
 ---
 # vars file for openstack_controller
+
+openstack_service_env:
+  OS_SERVICE_TOKEN: "{{ admin_token }}"
+  OS_SERVICE_ENDPOINT: "http://{{ controller_name }}:35357/v2.0"
+
+openstack_admin_env:
+  OS_TENANT_NAME: "admin"
+  OS_USERNAME: "admin"
+  OS_PASSWORD: "{{ admin_pass }}"
+  OS_AUTH_URL: "http://{{ controller_name }}:35357/v2.0"

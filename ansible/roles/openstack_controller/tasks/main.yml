@@ -1,4 +1,5 @@
 ---
+
 # tasks file for openstack_controller
 
 # Add juno repos
@@ -12,3 +13,5 @@
 - include: rabbitmq.yml
 - include: mysql.yml
 - include: keystone.yml
+- include: os_tenants_users_roles.yml
+- include: os_keystone_endpoints.yml
