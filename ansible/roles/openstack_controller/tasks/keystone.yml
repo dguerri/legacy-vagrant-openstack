@@ -1,15 +1,15 @@
 ---
 
-- name: make sure mysql is restarted
+- name: Make sure mysql is restarted
   meta: flush_handlers
 
-- name: install keystone service and client
+- name: Install keystone service and client
   apt: name="{{ item }}" state=present
   with_items:
     - keystone
     - python-keystoneclient
 
-- name: create openstack databases
+- name: Create openstack databases
   mysql_db: name="{{ item }}"
             state=present
             login_host="{{ controller_name }}"
@@ -18,10 +18,10 @@
   with_items:
     - keystone
   notify:
-    - sync keystone db
-    - restart keystone
+    - Sync keystone db
+    - Restart keystone
 
-- name: create openstack users
+- name: Create openstack users
   mysql_user: name="{{ item.name }}"
               host="{{ item.host }}"
               password="{{ item.password }}"
@@ -41,10 +41,10 @@
       password: "{{ keystone_dbpass }}"
       privs:    keystone.*:ALL
   notify:
-    - sync keystone db
-    - restart keystone
+    - Sync keystone db
+    - Restart keystone
 
-- name: configure keystone
+- name: Configure keystone
   ini_file: dest=/etc/keystone/keystone.conf
             section="{{ item.section }}"
             option="{{ item.option }}"
@@ -60,14 +60,14 @@
       option:   connection
       value:    "mysql://keystone:{{ keystone_dbpass }}@{{ controller_name }}/keystone"
   notify:
-    - restart keystone
+    - Restart keystone
 
 # Remove useless SQLite DB file
-- name: remove useless SQLite db file
+- name: Remove useless SQLite db file
   file: path=/var/lib/keystone/keystone.db state=absent
 
 # Create a cronjob that removes expired token periodically
-- name: add cronjob that remove keystone expired token
+- name: Add cronjob that remove keystone expired token
   cron: name="cronjob that remove keystone expired token"
         minute=0
         hour=*/1

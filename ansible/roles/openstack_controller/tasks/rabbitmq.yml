@@ -1,10 +1,10 @@
 ---
 # Install RabbitMQ
-- name: install rabbitmq
+- name: Install rabbitmq
   apt: name=rabbitmq-server state=present
 
 # Change RabbitMQ guest password
-- name: change rabbitmq guest password
+- name: Change rabbitmq guest password
   rabbitmq_user: user="guest"
                  password="{{ rabbit_pass }}"
                  vhost=/

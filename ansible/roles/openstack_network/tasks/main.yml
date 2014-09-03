@@ -1,10 +1,10 @@
 ---
 # tasks file for openstack_network
 
-- name: install juno repo
+- name: Install juno repo
   apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
 
-- name: update apt cache
+- name: Update apt cache
   apt: update_cache=yes cache_valid_time=7200
 
 

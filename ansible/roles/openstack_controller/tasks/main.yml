@@ -2,11 +2,11 @@
 # tasks file for openstack_controller
 
 # Add juno repos
-- name: install juno repo
+- name: Install juno repo
   apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
 
 # Update package cache
-- name: update apt cache
+- name: Update apt cache
   apt: update_cache=yes cache_valid_time=7200
 
 - include: rabbitmq.yml
