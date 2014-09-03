@@ -10,8 +10,8 @@
 - name: Update apt cache
   apt: update_cache=yes cache_valid_time=7200
 
+- name: Make sure MySQL is restarted
+  meta: flush_handlers
+
 - include: rabbitmq.yml
-- include: mysql.yml
 - include: keystone.yml
-- include: os_tenants_users_roles.yml
-- include: os_keystone_endpoints.yml
