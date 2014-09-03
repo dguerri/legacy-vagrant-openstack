@@ -1,5 +1,8 @@
 ---
 
+- name: make sure mysql is restarted
+  meta: flush_handlers
+
 - name: install keystone service and client
   apt: name="{{ item }}" state=present
   with_items:
@@ -9,7 +12,7 @@
 - name: create openstack databases
   mysql_db: name="{{ item }}"
             state=present
-            login_host="{{controller_name }}"
+            login_host="{{ controller_name }}"
             login_user=root
             login_password="{{ mysql_root }}"
   with_items:
@@ -24,9 +27,10 @@
               password="{{ item.password }}"
               priv="{{ item.privs }}"
               state=present
-              login_host="{{controller_name }}"
+              login_host="{{ controller_name }}"
               login_user=root
               login_password="{{ mysql_root }}"
+              append_privs=yes
   with_items:
     - name:     keystone
       host:     localhost

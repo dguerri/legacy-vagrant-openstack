@@ -2,7 +2,7 @@
 # handlers file for openstack_controller
 
 - name: sync keystone db
-  shell: keystone-manage db_sync keystone
+  shell: keystone-manage db_sync
   sudo: yes
   sudo_user: keystone
   notify:
