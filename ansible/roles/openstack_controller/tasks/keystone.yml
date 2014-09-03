@@ -23,7 +23,7 @@
     - Sync keystone db
     - Restart keystone
 
-- name: Create openstack users
+- name: Create keystone user
   mysql_user: name="{{ item.name }}"
               host="{{ item.host }}"
               password="{{ item.password }}"
@@ -79,7 +79,7 @@
         job="/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
         cron_file="remove-keystone-expired-tokens"
 
-- name: Make sure Keystone is restarted, if needed
+- name: Make sure keystone is restarted
   meta: flush_handlers
 
 # Tenants, users and roles
@@ -123,7 +123,7 @@
   changed_when: false
   environment: openstack_service_env
 
-- name: Add the admin tenant and user to the admin role
+- name: Add the admin role to admin in the admin tenant
   shell: keystone user-role-add --tenant admin --user admin --role admin
   environment: openstack_service_env
   when: "admin_role_list.stdout.find('admin') == -1"
@@ -178,7 +178,7 @@
   changed_when: false
   environment: openstack_service_env
 
-- name: Create the service entity for the Identity service
+- name: Create the service entity for the identity service
   shell: keystone service-create --name keystone --type identity --description="OpenStack Identity"
   environment: openstack_service_env
   when: "service_list.stdout.find('keystone') == -1"

@@ -1,0 +1,199 @@
+---
+
+# Packages
+
+- name: Install glance service and client
+  apt: name="{{ item }}" state=present
+  with_items:
+    - glance
+    - python-glanceclient
+
+# Database
+
+- name: Create Glance db
+  mysql_db: name="{{ item }}"
+            state=present
+            login_host="{{ controller_name }}"
+            login_user=root
+            login_password="{{ mysql_root }}"
+  with_items:
+    - glance
+  notify:
+    - Sync glance db
+    - Restart glance API
+    - Restart glance registry
+
+
+- name: Create glance user
+  mysql_user: name="{{ item.name }}"
+              host="{{ item.host }}"
+              password="{{ item.password }}"
+              priv="{{ item.privs }}"
+              state=present
+              login_host="{{ controller_name }}"
+              login_user=root
+              login_password="{{ mysql_root }}"
+              append_privs=yes
+  with_items:
+    - name:     glance
+      host:     localhost
+      password: "{{ glance_dbpass }}"
+      privs:    glance.*:ALL
+    - name:     glance
+      host:     "{{ controller_name }}"
+      password: "{{ glance_dbpass }}"
+      privs:    glance.*:ALL
+  notify:
+    - Sync glance db
+    - Restart glance API
+    - Restart glance registry
+
+# Configuration files
+
+- name: Configure glance API
+  ini_file: dest=/etc/glance/glance-api.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  database
+      option:   connection
+      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_name }}/glance"
+    - section:  DEFAULT
+      option:   rpc_backend
+      value:    rabbit
+    - section:  DEFAULT
+      option:   rabbit_host
+      value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_password
+      value:    "{{ rabbit_pass }}"
+    - section:  keystone_authtoken
+      option:   auth_uri
+      value:    "http://{{ controller_name }}:5000/v2.0"
+    - section:  keystone_authtoken
+      option:   auth_host
+      value:    "{{ controller_name }}"
+    - section:  keystone_authtoken
+      option:   auth_port
+      value:    35357
+    - section:  keystone_authtoken
+      option:   auth_protocol
+      value:    http
+    - section:  keystone_authtoken
+      option:   admin_tenant_name
+      value:    service
+    - section:  keystone_authtoken
+      option:   admin_user
+      value:    glance
+    - section:  keystone_authtoken
+      option:   admin_password
+      value:    "{{ glance_pass }}"
+    - section:  paste_deploy
+      option:   flavor
+      value:    keystone
+  notify:
+    - Restart glance API
+
+- name: Configure glance registry
+  ini_file: dest=/etc/glance/glance-registry.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  database
+      option:   connection
+      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_name }}/glance"
+    - section:  keystone_authtoken
+      option:   auth_uri
+      value:    "http://{{ controller_name }}:5000/v2.0"
+    - section:  keystone_authtoken
+      option:   auth_host
+      value:    "{{ controller_name }}"
+    - section:  keystone_authtoken
+      option:   auth_port
+      value:    35357
+    - section:  keystone_authtoken
+      option:   auth_protocol
+      value:    http
+    - section:  keystone_authtoken
+      option:   admin_tenant_name
+      value:    service
+    - section:  keystone_authtoken
+      option:   admin_user
+      value:    glance
+    - section:  keystone_authtoken
+      option:   admin_password
+      value:    "{{ glance_pass }}"
+    - section:  paste_deploy
+      option:   flavor
+      value:    keystone
+  notify:
+    - Restart glance registry
+
+# Security / Maintenance
+
+- name: Remove useless SQLite db file
+  file: path=/var/lib/glance/glance.sqlite state=absent
+
+- name: Make sure glance is restarted
+  meta: flush_handlers
+
+# Users and roles
+
+- name: "Dump keystone users"
+  shell: keystone user-list
+  register: user_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the glance user
+  shell: "keystone user-create --name glance --pass {{ glance_pass }} --email glance@localhost"
+  environment: openstack_service_env
+  when: "user_list.stdout.find('glance') == -1"
+
+- name: "Dump glance roles in service"
+  shell: keystone user-role-list --user glance --tenant service
+  register: glance_role_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Add the admin role to glance in the service tenant
+  shell: keystone user-role-add --tenant service --user glance --role admin
+  environment: openstack_service_env
+  when: "glance_role_list.stdout.find('admin') == -1"
+
+# Endpoints
+
+- name: "Dump service list"
+  shell: keystone service-list
+  register: service_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: "Dump endpoint list"
+  shell: keystone endpoint-list
+  register: endpoint_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the service entity for the image service
+  shell: keystone service-create --name glance --type image --description="OpenStack Image Service"
+  environment: openstack_service_env
+  when: "service_list.stdout.find('glance') == -1"
+
+- name: "Dump image service id"
+  shell: keystone service-list | awk '/ image / {print $2}'
+  register: image_service_id
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the API endpoint for the Identity service
+  shell: >
+    keystone endpoint-create \
+      --service-id={{ image_service_id.stdout }} \
+      --publicurl=http://{{ controller_name }}:9292 \
+      --internalurl=http://{{ controller_name }}:9292 \
+      --adminurl=http://{{ controller_name }}:9292
+  when: "endpoint_list.stdout.find('{{ image_service_id.stdout }}') == -1"
+  environment: openstack_service_env
