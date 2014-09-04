@@ -27,4 +27,8 @@
 
 - hosts: compute1
   roles:
-    - openstack_compute
+    - role: openstack_compute
+      rabbit_pass: "{{ RABBIT_PASS }}"
+      nova_dbpass: "{{ NOVA_DBPASS }}"
+      admin_token: "{{ ADMIN_TOKEN }}"
+      nova_pass: "{{ NOVA_PASS}}"

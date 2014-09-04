@@ -1,4 +1,10 @@
 ---
 # defaults file for openstack_compute
 
-controller_name: "controller"
+controller_name: controller
+my_management_ip: "{{ ansible_eth1.ipv4.address }}"
+
+rabbit_pass: "rabbit_pass"
+
+keystone_admin_port: 35357
+novnc_port: 6080
