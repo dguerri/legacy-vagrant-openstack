@@ -5,10 +5,11 @@
 
 # Change RabbitMQ guest password
 - name: Change rabbitmq guest password
-  rabbitmq_user: user="guest"
+  rabbitmq_user: user=guest
                  password="{{ rabbit_pass }}"
                  vhost=/
                  configure_priv=.*
                  read_priv=.*
                  write_priv=.*
+                 force=yes
                  state=present

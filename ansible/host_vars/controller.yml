@@ -12,10 +12,6 @@ ADMIN_PASS: "dae9ai3ohboo8Phiesoh"
 GLANCE_DBPASS: "aiChohgailangaeBoo0V"
 # Password of Image Service user glance
 GLANCE_PASS: "oapimig8thuCai2aZ6ye"
-# Database password for Compute service
-NOVA_DBPASS: "peeh7shuy8Iesh8Ce5aj"
-# Password of Compute service user nova
-NOVA_PASS: "EeQuoh7eiXeingialee5"
 # Database password for the dashboard
 DASH_DBPASS: "Ri6ohGhe5eim9Thahgae"
 # Database password for the Block Storage service

@@ -4,17 +4,6 @@
 controller_name: controller
 controller_management_ip: "{{ ansible_eth1.ipv4.address }}"
 
-mysql_root: "mysql_root"
-rabbit_pass: "rabbit_pass"
-keystone_dbpass: "keystone_dbpass"
-glance_dbpass: "glance_dbpass"
-nova_dbpass: "nova_dbpass"
-admin_token: "admin_token"
-admin_pass: "admin_pass"
-demo_pass: "demo_pass"
-glance_pass: "glance_pass"
-nova_pass: "nova_pass"
-
 keystone_admin_port: 35357
 keystone_port: 5000
 glance_port: 9292

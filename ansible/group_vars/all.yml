@@ -2,3 +2,9 @@
 
 # Password of user guest of RabbitMQ
 RABBIT_PASS: "Uawaiyiz6tee7chietoC"
+
+# Database password for Compute service
+NOVA_DBPASS: "peeh7shuy8Iesh8Ce5aj"
+
+# Password of Compute service user nova
+NOVA_PASS: "EeQuoh7eiXeingialee5"
