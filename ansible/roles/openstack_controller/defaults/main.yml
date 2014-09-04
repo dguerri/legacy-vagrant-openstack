@@ -11,3 +11,7 @@ admin_pass: "admin_pass"
 demo_pass: "demo_pass"
 glance_dbpass: "glance_dbpass"
 glance_pass: "glance_pass"
+
+keystone_admin_port: 35357
+keystone_port: 5000
+glance_port: 9292

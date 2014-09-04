@@ -76,7 +76,7 @@
       value:    "{{ controller_name }}"
     - section:  keystone_authtoken
       option:   auth_port
-      value:    35357
+      value:    "{{ keystone_admin_port }}"
     - section:  keystone_authtoken
       option:   auth_protocol
       value:    http
@@ -106,13 +106,13 @@
       value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_name }}/glance"
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:5000/v2.0"
+      value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
       value:    "{{ controller_name }}"
     - section:  keystone_authtoken
       option:   auth_port
-      value:    35357
+      value:    "{{ keystone_admin_port }}"
     - section:  keystone_authtoken
       option:   auth_protocol
       value:    http
@@ -138,6 +138,9 @@
 
 - name: Make sure glance is restarted
   meta: flush_handlers
+
+- name: Wait glance
+  wait_for: host="{{ controller_name }}" port="{{ glance_port }}" delay=10
 
 # Users and roles
 
@@ -192,8 +195,8 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ image_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:9292 \
-      --internalurl=http://{{ controller_name }}:9292 \
-      --adminurl=http://{{ controller_name }}:9292
+      --publicurl=http://{{ controller_name }}:{{ glance_port }} \
+      --internalurl=http://{{ controller_name }}:{{ glance_port }} \
+      --adminurl=http://{{ controller_name }}:{{ glance_port }}
   when: "endpoint_list.stdout.find('{{ image_service_id.stdout }}') == -1"
   environment: openstack_service_env

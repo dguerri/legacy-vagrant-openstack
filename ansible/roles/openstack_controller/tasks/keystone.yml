@@ -82,6 +82,9 @@
 - name: Make sure keystone is restarted
   meta: flush_handlers
 
+- name: Wait keystone
+  wait_for: host="{{ controller_name }}" port="{{ keystone_admin_port }}" delay=10
+
 # Tenants, users and roles
 
 - name: "Dump keystone roles"
@@ -193,9 +196,9 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ identity_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:5000/v2.0 \
-      --internalurl=http://{{ controller_name }}:5000/v2.0 \
-      --adminurl=http://{{ controller_name }}:35357/v2.0
+      --publicurl=http://{{ controller_name }}:{{ keystone_port }}/v2.0 \
+      --internalurl=http://{{ controller_name }}:{{ keystone_port }}/v2.0 \
+      --adminurl=http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0
   when: "endpoint_list.stdout.find('{{ identity_service_id.stdout }}') == -1"
   environment: openstack_service_env
 
