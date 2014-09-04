@@ -24,3 +24,33 @@
 
 - name: Restart glance registry
   service: name=glance-registry state=restarted
+
+- name: Sync nova db
+  shell: nova-manage db sync
+  sudo: yes
+  sudo_user: nova
+  notify:
+    - Restart nova API
+    - Restart nova cert
+    - Restart nova consoleauth
+    - Restart nova scheduler
+    - Restart nova conductor
+    - Restart nova novncproxy
+
+- name: Restart nova API
+  service: name=nova-api state=restarted
+
+- name: Restart nova cert
+  service: name=nova-cert state=restarted
+
+- name: Restart nova consoleauth
+  service: name=nova-consoleauth state=restarted
+
+- name: Restart nova scheduler
+  service: name=nova-scheduler state=restarted
+
+- name: Restart nova conductor
+  service: name=nova-conductor state=restarted
+
+- name: Restart nova novncproxy
+  service: name=nova-novncproxy state=restarted

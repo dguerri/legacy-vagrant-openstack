@@ -11,7 +11,7 @@
 
 # Database
 
-- name: Create Keystone db
+- name: Create keystone db
   mysql_db: name="{{ item }}"
             state=present
             login_host="{{ controller_name }}"
@@ -68,6 +68,12 @@
 
 # Security / Maintenance
 
+- name: Make sure keystone is restarted
+  meta: flush_handlers
+
+- name: Wait keystone
+  wait_for: host="{{ controller_name }}" port="{{ keystone_admin_port }}" delay=3
+
 - name: Remove useless SQLite db file
   file: path=/var/lib/keystone/keystone.db state=absent
 
@@ -78,12 +84,6 @@
         user=keystone
         job="/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
         cron_file="remove-keystone-expired-tokens"
-
-- name: Make sure keystone is restarted
-  meta: flush_handlers
-
-- name: Wait keystone
-  wait_for: host="{{ controller_name }}" port="{{ keystone_admin_port }}" delay=10
 
 # Tenants, users and roles
 

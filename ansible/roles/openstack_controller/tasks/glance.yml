@@ -10,7 +10,7 @@
 
 # Database
 
-- name: Create Glance db
+- name: Create glance db
   mysql_db: name="{{ item }}"
             state=present
             login_host="{{ controller_name }}"
@@ -133,14 +133,14 @@
 
 # Security / Maintenance
 
-- name: Remove useless SQLite db file
-  file: path=/var/lib/glance/glance.sqlite state=absent
-
 - name: Make sure glance is restarted
   meta: flush_handlers
 
 - name: Wait glance
-  wait_for: host="{{ controller_name }}" port="{{ glance_port }}" delay=10
+  wait_for: host="{{ controller_name }}" port="{{ glance_port }}" delay=3
+
+- name: Remove useless SQLite db file
+  file: path=/var/lib/glance/glance.sqlite state=absent
 
 # Users and roles
 
@@ -191,7 +191,7 @@
   changed_when: false
   environment: openstack_service_env
 
-- name: Create the API endpoint for the Identity service
+- name: Create the API endpoint for the image service
   shell: >
     keystone endpoint-create \
       --service-id={{ image_service_id.stdout }} \

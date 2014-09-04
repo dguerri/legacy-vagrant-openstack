@@ -13,13 +13,14 @@
     - role: openstack_controller
       mysql_root: "{{ MYSQL_ROOT }}"
       rabbit_pass: "{{ RABBIT_PASS }}"
-      admin_token: "{{ ADMIN_TOKEN }}"
       keystone_dbpass: "{{ KEYSTONEDB_PASS }}"
+      glance_dbpass: "{{ GLANCE_DBPASS }}"
+      nova_dbpass: "{{ NOVA_DBPASS }}"
+      admin_token: "{{ ADMIN_TOKEN }}"
       admin_pass: "{{ ADMIN_PASS }}"
       demo_pass: "{{ DEMO_PASS }}"
-      glance_dbpass: "{{ GLANCE_DBPASS }}"
       glance_pass: "{{ GLANCE_PASS }}"
-
+      nova_pass: "{{ NOVA_PASS}}"
 - hosts: network
   roles:
     - openstack_network

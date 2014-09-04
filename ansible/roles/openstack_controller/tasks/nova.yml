@@ -1,0 +1,198 @@
+---
+
+# Packages
+
+- name: Install nova service and client
+  apt: name="{{ item }}" state=present
+  with_items:
+    - nova-api
+    - nova-cert
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+    - python-novaclient
+
+# Database
+
+- name: Create nova db
+  mysql_db: name="{{ item }}"
+            state=present
+            login_host="{{ controller_name }}"
+            login_user=root
+            login_password="{{ mysql_root }}"
+  with_items:
+    - nova
+  notify:
+    - Sync nova db
+    - Restart nova API
+    - Restart nova cert
+    - Restart nova consoleauth
+    - Restart nova scheduler
+    - Restart nova conductor
+    - Restart nova novncproxy
+
+- name: Create nova user
+  mysql_user: name="{{ item.name }}"
+              host="{{ item.host }}"
+              password="{{ item.password }}"
+              priv="{{ item.privs }}"
+              state=present
+              login_host="{{ controller_name }}"
+              login_user=root
+              login_password="{{ mysql_root }}"
+              append_privs=yes
+  with_items:
+    - name:     nova
+      host:     localhost
+      password: "{{ nova_dbpass }}"
+      privs:    nova.*:ALL
+    - name:     nova
+      host:     "{{ controller_name }}"
+      password: "{{ nova_dbpass }}"
+      privs:    nova.*:ALL
+  notify:
+    - Sync nova db
+    - Restart nova API
+    - Restart nova cert
+    - Restart nova consoleauth
+    - Restart nova scheduler
+    - Restart nova conductor
+    - Restart nova novncproxy
+
+# Configuration files
+
+- name: Configure nova API
+  ini_file: dest=/etc/nova/nova.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  database
+      option:   connection
+      value:    "mysql://nova:{{ nova_dbpass }}@{{ controller_name }}/nova"
+    - section:  DEFAULT
+      option:   rpc_backend
+      value:    rabbit
+    - section:  DEFAULT
+      option:   rabbit_host
+      value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_password
+      value:    "{{ rabbit_pass }}"
+    - section:  DEFAULT
+      option:   my_ip
+      value:    "{{ controller_management_ip }}"
+    - section:  DEFAULT
+      option:   vnc_enabled
+      value:    True
+    - section:  DEFAULT
+      option:   vncserver_listen
+      value:    0.0.0.0
+    - section:  DEFAULT
+      option:   vncserver_proxyclient_address
+      value:    "{{ controller_management_ip }}"
+    - section:  DEFAULT
+      option:   novncproxy_base_url
+      value:    "http://{{ controller_name }}:{{ novnc_port }}/vnc_auto.html"
+    - section:  keystone_authtoken
+      option:   auth_uri
+      value:    "http://{{ controller_name }}:5000/v2.0"
+    - section:  keystone_authtoken
+      option:   auth_host
+      value:    "{{ controller_name }}"
+    - section:  keystone_authtoken
+      option:   auth_port
+      value:    "{{ keystone_admin_port }}"
+    - section:  keystone_authtoken
+      option:   auth_protocol
+      value:    http
+    - section:  keystone_authtoken
+      option:   admin_tenant_name
+      value:    service
+    - section:  keystone_authtoken
+      option:   admin_user
+      value:    nova
+    - section:  keystone_authtoken
+      option:   admin_password
+      value:    "{{ nova_pass }}"
+    - section:  glance
+      option:   host
+      value:    "{{ controller_name }}"
+  notify:
+    - Restart nova API
+    - Restart nova cert
+    - Restart nova consoleauth
+    - Restart nova scheduler
+    - Restart nova conductor
+    - Restart nova novncproxy
+
+# Security / Maintenance
+
+- name: Make sure nova is restarted
+  meta: flush_handlers
+
+- name: Wait nova
+  wait_for: host="{{ controller_name }}" port="{{ nova_port }}" delay=3
+
+- name: Remove useless SQLite db file
+  file: path=/var/lib/nova/nova.sqlite state=absent
+
+# Users and roles
+
+- name: "Dump keystone users"
+  shell: keystone user-list
+  register: user_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the nova user
+  shell: "keystone user-create --name nova --pass {{ nova_pass }} --email nova@localhost"
+  environment: openstack_service_env
+  when: "user_list.stdout.find('nova') == -1"
+
+- name: "Dump nova roles in service"
+  shell: keystone user-role-list --user nova --tenant service
+  register: nova_role_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Add the admin role to nova in the service tenant
+  shell: keystone user-role-add --tenant service --user nova --role admin
+  environment: openstack_service_env
+  when: "nova_role_list.stdout.find('admin') == -1"
+
+# Endpoints
+
+- name: "Dump service list"
+  shell: keystone service-list
+  register: service_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: "Dump endpoint list"
+  shell: keystone endpoint-list
+  register: endpoint_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the service entity for the image service
+  shell: keystone service-create --name nova --type compute --description="OpenStack Compute Service"
+  environment: openstack_service_env
+  when: "service_list.stdout.find('nova') == -1"
+
+- name: "Dump image service id"
+  shell: keystone service-list | awk '/ compute / {print $2}'
+  register: compute_service_id
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the API endpoint for the compute service
+  shell: >
+    keystone endpoint-create \
+      --service-id={{ compute_service_id.stdout }} \
+      --publicurl=http://{{ controller_name }}:{{ nova_port }} \
+      --internalurl=http://{{ controller_name }}:{{ nova_port }} \
+      --adminurl=http://{{ controller_name }}:{{ nova_port }}
+  when: "endpoint_list.stdout.find('{{ compute_service_id.stdout }}') == -1"
+  environment: openstack_service_env
