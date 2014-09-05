@@ -1,0 +1,222 @@
+---
+
+# Packages
+
+- name: Install neutron services and client
+  apt: name="{{ item }}" state=present
+  with_items:
+    - neutron-server
+    - neutron-plugin-ml2
+    - python-neutronclient
+
+# Database
+
+- name: Create neutron db
+  mysql_db: name="{{ item }}"
+            state=present
+            login_host="{{ controller_name }}"
+            login_user=root
+            login_password="{{ mysql_root }}"
+  with_items:
+    - neutron
+    - Restart neutron server
+
+
+- name: Create neutron user
+  mysql_user: name="{{ item.name }}"
+              host="{{ item.host }}"
+              password="{{ item.password }}"
+              priv="{{ item.privs }}"
+              state=present
+              login_host="{{ controller_name }}"
+              login_user=root
+              login_password="{{ mysql_root }}"
+              append_privs=yes
+  with_items:
+    - name:     neutron
+      host:     localhost
+      password: "{{ neutron_dbpass }}"
+      privs:    neutron.*:ALL
+    - name:     neutron
+      host:     "{{ controller_name }}"
+      password: "{{ neutron_dbpass }}"
+      privs:    neutron.*:ALL
+  notify:
+    - Restart neutron server
+
+# Configuration files
+
+- name: "Dump service tenant id"
+  shell: keystone tenant-get service | awk '/ id / {print $4}'
+  register: service_tenant_id
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Configure neutron
+  ini_file: dest=/etc/neutron/neutron.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  database
+      option:   connection
+      value:    "mysql://neutron:{{ neutron_dbpass }}@{{ controller_name }}/neutron"
+    - section:  DEFAULT
+      option:   auth_strategy
+      value:    keystone
+    - section:  DEFAULT
+      option:   rpc_backend
+      value:    neutron.openstack.common.rpc.impl_kombu
+    - section:  DEFAULT
+      option:   rabbit_host
+      value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_password
+      value:    "{{ rabbit_pass }}"
+    - section:  DEFAULT
+      option:   notify_nova_on_port_status_changes
+      value:    True
+    - section:  DEFAULT
+      option:   notify_nova_on_port_data_changes
+      value:    True
+    - section:  DEFAULT
+      option:   nova_url
+      value:    "http://{{ controller_name }}:{{ nova_port }}/v2"
+    - section:  DEFAULT
+      option:   nova_admin_username
+      value:    nova
+    - section:  DEFAULT
+      option:   nova_admin_tenant_id
+      value:    "{{ service_tenant_id.stdout }}"
+    - section:  DEFAULT
+      option:   nova_admin_password
+      value:    "{{ nova_pass }}"
+    - section:  DEFAULT
+      option:   nova_admin_auth_url
+      value:    "http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0"
+    - section:  DEFAULT
+      option:   core_plugin
+      value:    ml2
+    - section:  DEFAULT
+      option:   service_plugins
+      value:    router
+    - section:  DEFAULT
+      option:   allow_overlapping_ips
+      value:    True
+    - section:  keystone_authtoken
+      option:   auth_uri
+      value:    "http://{{ controller_name }}:{{ keystone_port }}"
+    - section:  keystone_authtoken
+      option:   auth_host
+      value:    "{{ controller_name }}"
+    - section:  keystone_authtoken
+      option:   auth_port
+      value:    "{{ keystone_admin_port }}"
+    - section:  keystone_authtoken
+      option:   auth_protocol
+      value:    http
+    - section:  keystone_authtoken
+      option:   admin_tenant_name
+      value:    service
+    - section:  keystone_authtoken
+      option:   admin_user
+      value:    neutron
+    - section:  keystone_authtoken
+      option:   admin_password
+      value:    "{{ neutron_pass }}"
+  notify:
+    - Restart neutron server
+
+- name: Configure modular layer 2 plug-in
+  ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  ml2
+      option:   type_drivers
+      value:    gre
+    - section:  ml2
+      option:   tenant_network_types
+      value:    gre
+    - section:  ml2
+      option:   mechanism_drivers
+      value:    openvswitch
+    - section:  ml2_type_gre
+      option:   tunnel_id_ranges
+      value:    1:1000
+    - section:  securitygroup
+      option:   firewall_driver
+      value:    neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    - section:  securitygroup
+      option:   enable_security_group
+      value:    True
+  notify:
+    - Restart neutron server
+
+# Security / Maintenance
+
+- name: Make sure neutron is restarted
+  meta: flush_handlers
+
+- name: Wait neutron
+  wait_for: host="{{ controller_name }}" port="{{ neutron_port }}" delay=3
+
+# Users and roles
+
+- name: "Dump keystone users"
+  shell: keystone user-list
+  register: user_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the neutron user
+  shell: "keystone user-create --name neutron --pass {{ neutron_pass }} --email neutron@localhost"
+  environment: openstack_service_env
+  when: "user_list.stdout.find('neutron') == -1"
+
+- name: "Dump neutron roles in service"
+  shell: keystone user-role-list --user neutron --tenant service
+  register: neutron_role_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Add the admin role to neutron in the service tenant
+  shell: keystone user-role-add --tenant service --user neutron --role admin
+  environment: openstack_service_env
+  when: "neutron_role_list.stdout.find('admin') == -1"
+
+# Endpoints
+
+- name: "Dump service list"
+  shell: keystone service-list
+  register: service_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: "Dump endpoint list"
+  shell: keystone endpoint-list
+  register: endpoint_list
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the service entity for the network service
+  shell: keystone service-create --name neutron --type network --description="OpenStack Network Service"
+  environment: openstack_service_env
+  when: "service_list.stdout.find('neutron') == -1"
+
+- name: "Dump network service id"
+  shell: keystone service-list | awk '/ network / {print $2}'
+  register: network_service_id
+  changed_when: false
+  environment: openstack_service_env
+
+- name: Create the API endpoint for the network service
+  shell: >
+    keystone endpoint-create \
+      --service-id={{ network_service_id.stdout }} \
+      --publicurl=http://{{ controller_name }}:{{ neutron_port }} \
+      --internalurl=http://{{ controller_name }}:{{ neutron_port }} \
+      --adminurl=http://{{ controller_name }}:{{ neutron_port }}
+  when: "endpoint_list.stdout.find('{{ network_service_id.stdout }}') == -1"
+  environment: openstack_service_env

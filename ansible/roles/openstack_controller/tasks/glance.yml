@@ -70,7 +70,7 @@
       value:    "{{ rabbit_pass }}"
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:5000/v2.0"
+      value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
       value:    "{{ controller_name }}"

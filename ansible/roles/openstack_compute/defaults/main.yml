@@ -4,8 +4,6 @@
 controller_name: controller
 my_management_ip: "{{ ansible_eth1.ipv4.address }}"
 
-rabbit_pass: "rabbit_pass"
-
 keystone_admin_port: 35357
 keystone_port: 5000
 novnc_port: 6080

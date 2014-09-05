@@ -54,3 +54,6 @@
 
 - name: Restart nova novncproxy
   service: name=nova-novncproxy state=restarted
+
+- name: Restart neutron server
+  service: name=neutron-server state=restarted

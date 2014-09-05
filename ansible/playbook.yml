@@ -16,11 +16,13 @@
       keystone_dbpass: "{{ KEYSTONEDB_PASS }}"
       glance_dbpass: "{{ GLANCE_DBPASS }}"
       nova_dbpass: "{{ NOVA_DBPASS }}"
+      neutron_dbpass: "{{ NEUTRON_DBPASS}}"
       admin_token: "{{ ADMIN_TOKEN }}"
       admin_pass: "{{ ADMIN_PASS }}"
       demo_pass: "{{ DEMO_PASS }}"
       glance_pass: "{{ GLANCE_PASS }}"
       nova_pass: "{{ NOVA_PASS}}"
+      neutron_pass: "{{ NOVA_PASS}}"
 - hosts: network
   roles:
     - openstack_network

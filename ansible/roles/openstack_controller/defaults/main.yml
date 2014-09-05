@@ -9,3 +9,4 @@ keystone_port: 5000
 glance_port: 9292
 nova_port: 8774
 novnc_port: 6080
+neutron_port: 9696
