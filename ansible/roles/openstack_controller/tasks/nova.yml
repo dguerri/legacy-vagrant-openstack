@@ -25,7 +25,7 @@
     - nova
   notify:
     - Sync nova db
-    - Restart nova API
+    - Restart nova api
     - Restart nova cert
     - Restart nova consoleauth
     - Restart nova scheduler
@@ -53,7 +53,7 @@
       privs:    nova.*:ALL
   notify:
     - Sync nova db
-    - Restart nova API
+    - Restart nova api
     - Restart nova cert
     - Restart nova consoleauth
     - Restart nova scheduler
@@ -77,6 +77,9 @@
     - section:  DEFAULT
       option:   rabbit_host
       value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_userid
+      value:    openstack
     - section:  DEFAULT
       option:   rabbit_password
       value:    "{{ rabbit_pass }}"
@@ -125,6 +128,12 @@
     - section:  DEFAULT
       option:   security_group_api
       value:    neutron
+    - section:  DEFAULT
+      option:   service_neutron_metadata_proxy
+      value:    true
+    - section:  DEFAULT
+      option:   neutron_metadata_proxy_shared_secret
+      value:    "{{ metadata_secret }}"
     - section:  keystone_authtoken
       option:   auth_uri
       value:    "http://{{ controller_name }}:5000/v2.0"
@@ -150,7 +159,7 @@
       option:   host
       value:    "{{ controller_name }}"
   notify:
-    - Restart nova API
+    - Restart nova api
     - Restart nova cert
     - Restart nova consoleauth
     - Restart nova scheduler

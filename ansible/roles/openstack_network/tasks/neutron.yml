@@ -1,0 +1,212 @@
+---
+
+# Routing
+
+- name: Configure operating system networking
+  sysctl: name="{{ item.name }}" value="{{ item.value }}" state=present
+  with_items:
+    - name:  net.ipv4.ip_forward
+      value: 1
+    - name:  net.ipv4.conf.all.rp_filter
+      value: 0
+    - name:  net.ipv4.conf.default.rp_filter
+      value: 0
+
+# Packages
+
+- name: Install neutron services and client
+  apt: name="{{ item }}" state=present
+  with_items:
+    - neutron-plugin-ml2
+    - neutron-plugin-openvswitch-agent
+    - openvswitch-datapath-dkms
+    - neutron-l3-agent
+    - neutron-dhcp-agent
+    - python-neutronclient
+
+# Configuration files
+
+- name: Configure neutron
+  ini_file: dest=/etc/neutron/neutron.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  DEFAULT
+      option:   auth_strategy
+      value:    keystone
+    - section:  DEFAULT
+      option:   rpc_backend
+      value:    neutron.openstack.common.rpc.impl_kombu
+    - section:  DEFAULT
+      option:   rabbit_host
+      value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_userid
+      value:    openstack
+    - section:  DEFAULT
+      option:   rabbit_password
+      value:    "{{ rabbit_pass }}"
+    - section:  DEFAULT
+      option:   core_plugin
+      value:    ml2
+    - section:  DEFAULT
+      option:   service_plugins
+      value:    router
+    - section:  DEFAULT
+      option:   allow_overlapping_ips
+      value:    True
+    - section:  keystone_authtoken
+      option:   auth_uri
+      value:    "http://{{ controller_name }}:{{ keystone_port }}"
+    - section:  keystone_authtoken
+      option:   auth_host
+      value:    "{{ controller_name }}"
+    - section:  keystone_authtoken
+      option:   auth_port
+      value:    "{{ keystone_admin_port }}"
+    - section:  keystone_authtoken
+      option:   auth_protocol
+      value:    http
+    - section:  keystone_authtoken
+      option:   admin_tenant_name
+      value:    service
+    - section:  keystone_authtoken
+      option:   admin_user
+      value:    neutron
+    - section:  keystone_authtoken
+      option:   admin_password
+      value:    "{{ neutron_pass }}"
+  notify:
+    - Restart neutron plugin openvswitch agent
+    - Restart neutron l3 agent
+    - Restart neutron dhcp agent
+    - Restart neutron metadata agent
+
+- name: Configure l3 agent
+  ini_file: dest=/etc/neutron/l3_agent.ini
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  DEFAULT
+      option:   interface_driver
+      value:    neutron.agent.linux.interface.OVSInterfaceDriver
+    - section:  DEFAULT
+      option:   use_namespaces
+      value:    True
+  notify:
+    - Restart neutron l3 agent
+
+- name: Configure DHCP agent
+  ini_file: dest=/etc/neutron/dhcp_agent.ini
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  DEFAULT
+      option:   interface_driver
+      value:    neutron.agent.linux.interface.OVSInterfaceDriver
+    - section:  DEFAULT
+      option:   dhcp_driver
+      value:    neutron.agent.linux.dhcp.Dnsmasq
+    - section:  DEFAULT
+      option:   use_namespaces
+      value:    True
+    - section:  DEFAULT
+      option:   dnsmasq_config_file
+      value:    /etc/neutron/dnsmasq-neutron.conf
+  notify:
+    - Restart neutron dhcp agent
+
+- name: Configure dnsmasq
+  lineinfile: dest=/etc/neutron/dnsmasq-neutron.conf
+              regexp=^dhcp-option-force=
+              line=dhcp-option-force=26,1454
+              create=True
+  notify:
+    - Kill all dnsmasq
+
+- name: Configure metadata agent
+  ini_file: dest=/etc/metadata_agent.ini
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  DEFAULT
+      option:   interface_driver
+      value:    neutron.agent.linux.interface.OVSInterfaceDriver
+    - section:  DEFAULT
+      option:   auth_url
+      value:    "http://{{ controller_name }}:{{ keystone_port}}/v2.0"
+    - section:  DEFAULT
+      option:   auth_region
+      value:    regionOne
+    - section:  DEFAULT
+      option:   admin_tenant_name
+      value:    service
+    - section:  DEFAULT
+      option:   admin_user
+      value:    neutron
+    - section:  DEFAULT
+      option:   admin_password
+      value:    "{{ neutron_pass }}"
+    - section:  DEFAULT
+      option:   nova_metadata_ip
+      value:    controller
+    - section:  DEFAULT
+      option:   metadata_proxy_shared_secret
+      value:    "{{ metadata_secret }}"
+  notify:
+    - Restart neutron metadata agent
+
+- name: Configure modular layer 2 plug-in
+  ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items:
+    - section:  ml2
+      option:   type_drivers
+      value:    gre
+    - section:  ml2
+      option:   tenant_network_types
+      value:    gre
+    - section:  ml2
+      option:   mechanism_drivers
+      value:    openvswitch
+    - section:  ml2_type_gre
+      option:   tunnel_id_ranges
+      value:    1:1000
+    - section:  ovs
+      option:   local_ip
+      value:    "{{ my_tunnel_interface_ip }}"
+    - section:  ovs
+      option:   tunnel_type
+      value:    gre
+    - section:  ovs
+      option:   enable_tunneling
+      value:    True
+    - section:  securitygroup
+      option:   firewall_driver
+      value:    neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    - section:  securitygroup
+      option:   enable_security_group
+      value:    True
+  notify:
+    - Restart openvswitch
+    - Restart neutron plugin openvswitch agent
+
+# Security / Maintenance
+
+- name: Make sure neutron services are restarted
+  meta: flush_handlers
+
+- name: Remove useless SQLite db file
+  file: path=/var/lib/neutron/neutron.sqlite state=absent
+
+- name: Create external ovs switch
+  openvswitch_bridge: bridge=br-ex state=present
+
+- name: Bridge external interface
+  openvswitch_port: bridge=br-ex port={{ external_interface }} state=present

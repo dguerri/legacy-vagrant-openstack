@@ -4,12 +4,15 @@
   apt: name=rabbitmq-server state=present
 
 # Change RabbitMQ guest password
-- name: Change rabbitmq guest password
+- name: Delete rabbitmq guest user
   rabbitmq_user: user=guest
+                 state=absent
+
+- name: Change rabbitmq guest password
+  rabbitmq_user: user=openstack
                  password="{{ rabbit_pass }}"
                  vhost=/
                  configure_priv=.*
                  read_priv=.*
                  write_priv=.*
-                 force=yes
                  state=present

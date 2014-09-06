@@ -8,3 +8,6 @@ NOVA_DBPASS: "peeh7shuy8Iesh8Ce5aj"
 
 # Password of Compute service user nova
 NOVA_PASS: "EeQuoh7eiXeingialee5"
+
+# Metadata shared secret
+METADATA_SECRET: "uuD7Queip0peehohth0e"

@@ -9,6 +9,7 @@
     with_items: groups.all
 
 - hosts: controller
+
   roles:
     - role: openstack_controller
       mysql_root: "{{ MYSQL_ROOT }}"
@@ -23,9 +24,14 @@
       glance_pass: "{{ GLANCE_PASS }}"
       nova_pass: "{{ NOVA_PASS}}"
       neutron_pass: "{{ NOVA_PASS}}"
+      metadata_secret: "{{ METADATA_SECRET }}"
+
 - hosts: network
   roles:
-    - openstack_network
+    - role: openstack_network
+      rabbit_pass: "{{ RABBIT_PASS }}"
+      neutron_pass: "{{ NOVA_PASS}}"
+      metadata_secret: "{{ METADATA_SECRET }}"
 
 - hosts: compute1
   roles:

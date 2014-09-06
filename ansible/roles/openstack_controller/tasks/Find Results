@@ -1,0 +1,38 @@
+Searching 25 files for "rabbit_host" (case sensitive, whole word)
+
+/Users/davide/Developer/HP/vagrant-openstack/ansible/roles/openstack_compute/tasks/nova.yml:
+   24        value:    rabbit
+   25      - section:  DEFAULT
+   26:       option:   rabbit_host
+   27        value:    "{{ controller_name }}"
+   28      - section:  DEFAULT
+
+/Users/davide/Developer/HP/vagrant-openstack/ansible/roles/openstack_controller/tasks/glance.yml:
+   64        value:    rabbit
+   65      - section:  DEFAULT
+   66:       option:   rabbit_host
+   67        value:    "{{ controller_name }}"
+   68      - section:  DEFAULT
+
+/Users/davide/Developer/HP/vagrant-openstack/ansible/roles/openstack_controller/tasks/neutron.yml:
+   69        value:    neutron.openstack.common.rpc.impl_kombu
+   70      - section:  DEFAULT
+   71:       option:   rabbit_host
+   72        value:    "{{ controller_name }}"
+   73      - section:  DEFAULT
+
+/Users/davide/Developer/HP/vagrant-openstack/ansible/roles/openstack_controller/tasks/nova.yml:
+   76        value:    rabbit
+   77      - section:  DEFAULT
+   78:       option:   rabbit_host
+   79        value:    "{{ controller_name }}"
+   80      - section:  DEFAULT
+
+/Users/davide/Developer/HP/vagrant-openstack/ansible/roles/openstack_network/tasks/neutron.yml:
+   28        value:    neutron.openstack.common.rpc.impl_kombu
+   29      - section:  DEFAULT
+   30:       option:   rabbit_host
+   31        value:    "{{ controller_name }}"
+   32      - section:  DEFAULT
+
+5 matches across 5 files

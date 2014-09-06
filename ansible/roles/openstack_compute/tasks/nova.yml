@@ -26,6 +26,9 @@
       option:   rabbit_host
       value:    "{{ controller_name }}"
     - section:  DEFAULT
+      option:   rabbit_userid
+      value:    openstack
+    - section:  DEFAULT
       option:   rabbit_password
       value:    "{{ rabbit_pass }}"
     - section:  DEFAULT
@@ -43,6 +46,36 @@
     - section:  DEFAULT
       option:   novncproxy_base_url
       value:    "http://{{ controller_name }}:{{ novnc_port }}/vnc_auto.html"
+    - section:  DEFAULT
+      option:   network_api_class
+      value:    nova.network.neutronv2.api.API
+    - section:  DEFAULT
+      option:   neutron_url
+      value:    "http://{{ controller_name }}:{{ neutron_port }}"
+    - section:  DEFAULT
+      option:   neutron_auth_strategy
+      value:    keystone
+    - section:  DEFAULT
+      option:   neutron_admin_tenant_name
+      value:    service
+    - section:  DEFAULT
+      option:   neutron_admin_username
+      value:    neutron
+    - section:  DEFAULT
+      option:   neutron_admin_password
+      value:    "{{ neutron_pass }}"
+    - section:  DEFAULT
+      option:   neutron_admin_auth_url
+      value:    http://controller:35357/v2.0
+    - section:  DEFAULT
+      option:   linuxnet_interface_driver
+      value:    nova.network.linux_net.LinuxOVSInterfaceDriver
+    - section:  DEFAULT
+      option:   firewall_driver
+      value:    nova.virt.firewall.NoopFirewallDriver
+    - section:  DEFAULT
+      option:   security_group_api
+      value:    neutron
     - section:  keystone_authtoken
       option:   auth_uri
       value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
@@ -71,6 +104,9 @@
     - Restart nova compute
 
 # Security / Maintenance
+
+- name: Make sure neutron services are restarted
+  meta: flush_handlers
 
 - name: Remove useless SQLite db file
   file: path=/var/lib/nova/nova.sqlite state=absent

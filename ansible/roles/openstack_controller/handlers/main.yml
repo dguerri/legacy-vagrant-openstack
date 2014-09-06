@@ -30,14 +30,14 @@
   sudo: yes
   sudo_user: nova
   notify:
-    - Restart nova API
+    - Restart nova api
     - Restart nova cert
     - Restart nova consoleauth
     - Restart nova scheduler
     - Restart nova conductor
     - Restart nova novncproxy
 
-- name: Restart nova API
+- name: Restart nova api
   service: name=nova-api state=restarted
 
 - name: Restart nova cert

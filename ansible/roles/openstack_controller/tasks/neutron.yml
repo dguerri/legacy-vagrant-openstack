@@ -46,7 +46,7 @@
 
 # Configuration files
 
-- name: "Dump service tenant id"
+- name: Dump service tenant id
   shell: keystone tenant-get service | awk '/ id / {print $4}'
   register: service_tenant_id
   changed_when: false
@@ -70,6 +70,9 @@
     - section:  DEFAULT
       option:   rabbit_host
       value:    "{{ controller_name }}"
+    - section:  DEFAULT
+      option:   rabbit_userid
+      value:    openstack
     - section:  DEFAULT
       option:   rabbit_password
       value:    "{{ rabbit_pass }}"
@@ -161,6 +164,9 @@
 
 - name: Wait neutron
   wait_for: host="{{ controller_name }}" port="{{ neutron_port }}" delay=3
+
+- name: Remove useless SQLite db file
+  file: path=/var/lib/neutron/neutron.sqlite state=absent
 
 # Users and roles
 

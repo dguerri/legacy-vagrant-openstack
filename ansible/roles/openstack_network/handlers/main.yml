@@ -1,2 +1,21 @@
 ---
 # handlers file for openstack_network
+
+- name: Kill all dnsmasq
+  command: pkill dnsmasq
+  ignore_errors: yes
+
+- name: Restart neutron plugin openvswitch agent
+  service: name=neutron-plugin-openvswitch-agent state=restarted
+
+- name: Restart neutron l3 agent
+  service: name=neutron-l3-agent state=restarted
+
+- name: Restart neutron dhcp agent
+  service: name=neutron-dhcp-agent state=restarted
+
+- name: Restart neutron metadata agent
+  service: name=neutron-metadata-agent state=restarted
+
+- name: Restart openvswitch
+  service: name=openvswitch-switch state=restarted

@@ -66,6 +66,9 @@
       option:   rabbit_host
       value:    "{{ controller_name }}"
     - section:  DEFAULT
+      option:   rabbit_userid
+      value:    openstack
+    - section:  DEFAULT
       option:   rabbit_password
       value:    "{{ rabbit_pass }}"
     - section:  keystone_authtoken

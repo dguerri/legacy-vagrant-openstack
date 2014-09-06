@@ -1,10 +1,15 @@
 ---
 # tasks file for openstack_network
 
+# Add juno repos
 - name: Install juno repo
   apt_repository: repo='ppa:ubuntu-cloud-archive/juno-staging'
 
+# Update package cache
 - name: Update apt cache
   apt: update_cache=yes cache_valid_time=7200
 
+- name: Make sure MySQL is restarted
+  meta: flush_handlers
 
+- include: neutron.yml
