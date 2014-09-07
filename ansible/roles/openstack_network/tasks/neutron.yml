@@ -128,7 +128,7 @@
     - Kill all dnsmasq
 
 - name: Configure metadata agent
-  ini_file: dest=/etc/metadata_agent.ini
+  ini_file: dest=/etc/neutron/metadata_agent.ini
             section="{{ item.section }}"
             option="{{ item.option }}"
             value="{{ item.value }}"
