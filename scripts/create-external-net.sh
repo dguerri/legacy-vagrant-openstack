@@ -12,4 +12,3 @@ neutron net-create ext-net --shared --router:external=True
 neutron subnet-create ext-net --name ext-subnet \
   --allocation-pool start=$FLOATING_IP_START,end=$FLOATING_IP_END \
   --disable-dhcp --gateway $EXTERNAL_NETWORK_GATEWAY $EXTERNAL_NETWORK_CIDR
-
