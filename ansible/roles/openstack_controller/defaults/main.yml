@@ -4,6 +4,20 @@
 controller_hostname: controller
 controller_management_ip: "{{ ansible_eth1.ipv4.address }}"
 
+mysql_root: mysql_root_default
+rabbit_pass: rabbit_pass_default
+keystone_dbpass: keystone_dbpass_default
+glance_dbpass: glance_dbpass_default
+nova_dbpass: nova_dbpass_default
+neutron_dbpass: neutron_dbpass_default
+admin_token: admin_token_default
+admin_pass: admin_pass_default
+demo_pass: demo_pass_default
+glance_pass: glance_pass_default
+nova_pass: nova_pass_default
+neutron_pass: neutron_pass_default
+metadata_secret: metadata_secret_default
+
 keystone_admin_port: 35357
 keystone_port: 5000
 glance_port: 9292

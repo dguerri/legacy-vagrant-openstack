@@ -5,6 +5,12 @@ controller_hostname: controller
 my_management_ip: "{{ ansible_eth1.ipv4.address }}"
 my_tunnel_interface_ip: "{{ ansible_eth2.ipv4.address }}"
 
+rabbit_pass: rabbit_pass_default
+nova_dbpass: nova_dbpass_default
+admin_token: admin_token_default
+nova_pass: nova_pass_default
+neutron_pass: neutron_pass_default
+
 keystone_admin_port: 35357
 keystone_port: 5000
 novnc_port: 6080

@@ -8,6 +8,10 @@ external_interface: eth3
 my_external_interface_ip: "{{ ansible_eth3.ipv4.address }}"
 my_external_interface_mask: "{{ ansible_eth3.ipv4.netmask }}"
 
+rabbit_pass: rabbit_pass_default
+neutron_pass: neutron_pass_default
+metadata_secret: metadata_secret_default
+
 keystone_admin_port: 35357
 keystone_port: 5000
 neutron_port: 9696
