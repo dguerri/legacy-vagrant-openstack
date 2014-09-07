@@ -87,85 +87,53 @@
 
 # Tenants, users and roles
 
-- name: "Dump keystone roles"
-  shell: keystone role-list
-  register: role_list
-  changed_when: false
-  environment: openstack_service_env
+- name: Create admin tenant
+  keystone_user: tenant=admin
+                 tenant_description="Admin Tenant"
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: "Dump keystone users"
-  shell: keystone user-list
-  register: user_list
-  changed_when: false
-  environment: openstack_service_env
+- name: Create service tenant
+  keystone_user: tenant=service
+                 tenant_description="Service Tenant"
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: "Dump keystone tenants"
-  shell: keystone tenant-list
-  register: tenant_list
-  changed_when: false
-  environment: openstack_service_env
+- name: Create demo tenant
+  keystone_user: tenant=demo
+                 tenant_description="Demo Tenant"
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: Create the admin tenant
-  shell: keystone tenant-create --name admin --description "Admin Tenant"
-  environment: openstack_service_env
-  when: "tenant_list.stdout.find('admin') == -1"
+- name: Create keystone admin user in admin tenant
+  keystone_user: user=admin
+                 tenant=admin
+                 password="{{ admin_pass }}"
+                 email=admin@localhost
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: Create the admin user
-  shell: "keystone user-create --name admin --pass {{ admin_pass }} --email admin@localhost"
-  environment: openstack_service_env
-  when: "user_list.stdout.find('admin') == -1"
+- name: Create keystone demo user in demo tenant
+  keystone_user: user=demo
+                 tenant=demo
+                 password="{{ demo_pass }}"
+                 email=demo@localhost
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: Create the admin role
-  shell: keystone role-create --name admin
-  environment: openstack_service_env
-  when: "role_list.stdout.find('admin') == -1"
+- name: Add admin role to user admin in tenant admin
+  keystone_user: role=admin
+                 user=admin
+                 tenant=admin
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: "Dump admin roles in admin"
-  shell: keystone user-role-list --user admin --tenant admin
-  register: admin_role_list
-  changed_when: false
-  environment: openstack_service_env
-
-- name: Add the admin role to admin in the admin tenant
-  shell: keystone user-role-add --tenant admin --user admin --role admin
-  environment: openstack_service_env
-  when: "admin_role_list.stdout.find('admin') == -1"
-
-- name: Create the _member_ role
-  shell: keystone role-create --name _member_
-  environment: openstack_service_env
-  when: "role_list.stdout.find('_member_') == -1"
-
-- name: Add the admin tenant and user to the _member_ role
-  shell: keystone user-role-add --tenant admin --user admin --role _member_
-  environment: openstack_service_env
-  when: "admin_role_list.stdout.find('_member_') == -1"
-
-- name: Create the demo tenant
-  shell: keystone tenant-create --name demo --description "Demo Tenant"
-  environment: openstack_service_env
-  when: "tenant_list.stdout.find('demo') == -1"
-
-- name: Create the demo user
-  shell: "keystone user-create --name demo --pass {{ demo_pass }} --email demo@localhost"
-  environment: openstack_service_env
-  when: "user_list.stdout.find('demo') == -1"
-
-- name: "Dump demo roles in demo"
-  shell: keystone user-role-list --user demo --tenant demo
-  register: demo_role_list
-  changed_when: false
-  environment: openstack_service_env
-
-- name: Add the demo tenant and user to the _member_ role
-  shell: keystone user-role-add --tenant demo --user demo --role _member_
-  environment: openstack_service_env
-  when: "demo_role_list.stdout.find('_member_') == -1"
-
-- name: Create the service tenant
-  shell: keystone tenant-create --name service --description "Service Tenant"
-  environment: openstack_service_env
-  when: "tenant_list.stdout.find('service') == -1"
+- name: Add _member role to user demo in tenant demo
+  keystone_user: role=_member_
+                 user=demo
+                 tenant=demo
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
 # Endpoints
 

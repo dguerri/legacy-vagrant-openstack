@@ -179,27 +179,20 @@
 
 # Users and roles
 
-- name: "Dump keystone users"
-  shell: keystone user-list
-  register: user_list
-  changed_when: false
-  environment: openstack_service_env
+- name: Create keystone nova user in service tenant
+  keystone_user: user=nova
+                 tenant=service
+                 password="{{ nova_pass }}"
+                 email=nova@localhost
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
-- name: Create the nova user
-  shell: "keystone user-create --name nova --pass {{ nova_pass }} --email nova@localhost"
-  environment: openstack_service_env
-  when: "user_list.stdout.find('nova') == -1"
-
-- name: "Dump nova roles in service"
-  shell: keystone user-role-list --user nova --tenant service
-  register: nova_role_list
-  changed_when: false
-  environment: openstack_service_env
-
-- name: Add the admin role to nova in the service tenant
-  shell: keystone user-role-add --tenant service --user nova --role admin
-  environment: openstack_service_env
-  when: "nova_role_list.stdout.find('admin') == -1"
+- name: Add admin role to nova user in service tenant
+  keystone_user: role=admin
+                 user=nova
+                 tenant=service
+                 endpoint="http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
+                 token="{{ admin_token }}"
 
 # Endpoints
 

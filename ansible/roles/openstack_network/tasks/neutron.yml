@@ -210,4 +210,3 @@
 
 - name: Bridge external interface
   openvswitch_port: bridge=br-ex port={{ external_interface }} state=present
-
