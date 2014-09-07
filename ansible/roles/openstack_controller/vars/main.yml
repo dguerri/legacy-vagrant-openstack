@@ -3,10 +3,10 @@
 
 openstack_service_env:
   OS_SERVICE_TOKEN: "{{ admin_token }}"
-  OS_SERVICE_ENDPOINT: "http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0"
+  OS_SERVICE_ENDPOINT: "http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
 
 openstack_admin_env:
   OS_TENANT_NAME: "admin"
   OS_USERNAME: "admin"
   OS_PASSWORD: "{{ admin_pass }}"
-  OS_AUTH_URL: "http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0"
+  OS_AUTH_URL: "http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"

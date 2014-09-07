@@ -8,4 +8,4 @@ galaxy_info:
 
 dependencies:
   - role: ntp
-    ntp_servers: [ "{{ controller_name }}" ]
+    ntp_servers: [ "{{ controller_hostname }}" ]

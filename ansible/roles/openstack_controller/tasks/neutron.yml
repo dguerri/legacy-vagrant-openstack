@@ -14,7 +14,7 @@
 - name: Create neutron db
   mysql_db: name="{{ item }}"
             state=present
-            login_host="{{ controller_name }}"
+            login_host="{{ controller_hostname }}"
             login_user=root
             login_password="{{ mysql_root }}"
   with_items:
@@ -28,7 +28,7 @@
               password="{{ item.password }}"
               priv="{{ item.privs }}"
               state=present
-              login_host="{{ controller_name }}"
+              login_host="{{ controller_hostname }}"
               login_user=root
               login_password="{{ mysql_root }}"
               append_privs=yes
@@ -38,7 +38,7 @@
       password: "{{ neutron_dbpass }}"
       privs:    neutron.*:ALL
     - name:     neutron
-      host:     "{{ controller_name }}"
+      host:     "{{ controller_hostname }}"
       password: "{{ neutron_dbpass }}"
       privs:    neutron.*:ALL
   notify:
@@ -60,7 +60,7 @@
   with_items:
     - section:  database
       option:   connection
-      value:    "mysql://neutron:{{ neutron_dbpass }}@{{ controller_name }}/neutron"
+      value:    "mysql://neutron:{{ neutron_dbpass }}@{{ controller_hostname }}/neutron"
     - section:  DEFAULT
       option:   auth_strategy
       value:    keystone
@@ -69,7 +69,7 @@
       value:    neutron.openstack.common.rpc.impl_kombu
     - section:  DEFAULT
       option:   rabbit_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  DEFAULT
       option:   rabbit_userid
       value:    openstack
@@ -84,7 +84,7 @@
       value:    True
     - section:  DEFAULT
       option:   nova_url
-      value:    "http://{{ controller_name }}:{{ nova_port }}/v2"
+      value:    "http://{{ controller_hostname }}:{{ nova_port }}/v2"
     - section:  DEFAULT
       option:   nova_admin_username
       value:    nova
@@ -96,7 +96,7 @@
       value:    "{{ nova_pass }}"
     - section:  DEFAULT
       option:   nova_admin_auth_url
-      value:    "http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0"
+      value:    "http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
     - section:  DEFAULT
       option:   core_plugin
       value:    ml2
@@ -108,10 +108,10 @@
       value:    True
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:{{ keystone_port }}"
+      value:    "http://{{ controller_hostname }}:{{ keystone_port }}"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"
@@ -163,7 +163,7 @@
   meta: flush_handlers
 
 - name: Wait neutron
-  wait_for: host="{{ controller_name }}" port="{{ neutron_port }}" delay=3
+  wait_for: host="{{ controller_hostname }}" port="{{ neutron_port }}" delay=3
 
 - name: Remove useless SQLite db file
   file: path=/var/lib/neutron/neutron.sqlite state=absent
@@ -221,8 +221,8 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ network_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:{{ neutron_port }} \
-      --internalurl=http://{{ controller_name }}:{{ neutron_port }} \
-      --adminurl=http://{{ controller_name }}:{{ neutron_port }}
+      --publicurl=http://{{ controller_hostname }}:{{ neutron_port }} \
+      --internalurl=http://{{ controller_hostname }}:{{ neutron_port }} \
+      --adminurl=http://{{ controller_hostname }}:{{ neutron_port }}
   when: "endpoint_list.stdout.find('{{ network_service_id.stdout }}') == -1"
   environment: openstack_service_env

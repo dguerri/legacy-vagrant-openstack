@@ -18,7 +18,7 @@
 - name: Create nova db
   mysql_db: name="{{ item }}"
             state=present
-            login_host="{{ controller_name }}"
+            login_host="{{ controller_hostname }}"
             login_user=root
             login_password="{{ mysql_root }}"
   with_items:
@@ -38,7 +38,7 @@
               password="{{ item.password }}"
               priv="{{ item.privs }}"
               state=present
-              login_host="{{ controller_name }}"
+              login_host="{{ controller_hostname }}"
               login_user=root
               login_password="{{ mysql_root }}"
               append_privs=yes
@@ -48,7 +48,7 @@
       password: "{{ nova_dbpass }}"
       privs:    nova.*:ALL
     - name:     nova
-      host:     "{{ controller_name }}"
+      host:     "{{ controller_hostname }}"
       password: "{{ nova_dbpass }}"
       privs:    nova.*:ALL
   notify:
@@ -70,13 +70,13 @@
   with_items:
     - section:  database
       option:   connection
-      value:    "mysql://nova:{{ nova_dbpass }}@{{ controller_name }}/nova"
+      value:    "mysql://nova:{{ nova_dbpass }}@{{ controller_hostname }}/nova"
     - section:  DEFAULT
       option:   rpc_backend
       value:    rabbit
     - section:  DEFAULT
       option:   rabbit_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  DEFAULT
       option:   rabbit_userid
       value:    openstack
@@ -97,13 +97,13 @@
       value:    "{{ controller_management_ip }}"
     - section:  DEFAULT
       option:   novncproxy_base_url
-      value:    "http://{{ controller_name }}:{{ novnc_port }}/vnc_auto.html"
+      value:    "http://{{ controller_hostname }}:{{ novnc_port }}/vnc_auto.html"
     - section:  DEFAULT
       option:   network_api_class
       value:    nova.network.neutronv2.api.API
     - section:  DEFAULT
       option:   neutron_url
-      value:    "http://{{ controller_name }}:{{ neutron_port }}"
+      value:    "http://{{ controller_hostname }}:{{ neutron_port }}"
     - section:  DEFAULT
       option:   neutron_auth_strategy
       value:    keystone
@@ -118,7 +118,7 @@
       value:    "{{ neutron_pass }}"
     - section:  DEFAULT
       option:   neutron_admin_auth_url
-      value:    "http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0"
+      value:    "http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0"
     - section:  DEFAULT
       option:   linuxnet_interface_driver
       value:    nova.network.linux_net.LinuxOVSInterfaceDriver
@@ -136,10 +136,10 @@
       value:    "{{ metadata_secret }}"
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:5000/v2.0"
+      value:    "http://{{ controller_hostname }}:5000/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"
@@ -157,7 +157,7 @@
       value:    "{{ nova_pass }}"
     - section:  glance
       option:   host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
   notify:
     - Restart nova api
     - Restart nova cert
@@ -172,7 +172,7 @@
   meta: flush_handlers
 
 - name: Wait nova
-  wait_for: host="{{ controller_name }}" port="{{ nova_port }}" delay=3
+  wait_for: host="{{ controller_hostname }}" port="{{ nova_port }}" delay=3
 
 - name: Remove useless SQLite db file
   file: path=/var/lib/nova/nova.sqlite state=absent
@@ -230,8 +230,9 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ compute_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:{{ nova_port }} \
-      --internalurl=http://{{ controller_name }}:{{ nova_port }} \
-      --adminurl=http://{{ controller_name }}:{{ nova_port }}
+      --publicurl=http://{{ controller_hostname }}:{{ nova_port }}/v2/%\(tenant_id\)s \
+      --internalurl=http://{{ controller_hostname }}:{{ nova_port }}/v2/%\(tenant_id\)s \
+      --adminurl=http://{{ controller_hostname }}:{{ nova_port }}/v2/%\(tenant_id\)s
   when: "endpoint_list.stdout.find('{{ compute_service_id.stdout }}') == -1"
   environment: openstack_service_env
+

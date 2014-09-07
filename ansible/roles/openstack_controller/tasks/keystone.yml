@@ -14,7 +14,7 @@
 - name: Create keystone db
   mysql_db: name="{{ item }}"
             state=present
-            login_host="{{ controller_name }}"
+            login_host="{{ controller_hostname }}"
             login_user=root
             login_password="{{ mysql_root }}"
   with_items:
@@ -29,7 +29,7 @@
               password="{{ item.password }}"
               priv="{{ item.privs }}"
               state=present
-              login_host="{{ controller_name }}"
+              login_host="{{ controller_hostname }}"
               login_user=root
               login_password="{{ mysql_root }}"
               append_privs=yes
@@ -39,7 +39,7 @@
       password: "{{ keystone_dbpass }}"
       privs:    keystone.*:ALL
     - name:     keystone
-      host:     "{{ controller_name }}"
+      host:     "{{ controller_hostname }}"
       password: "{{ keystone_dbpass }}"
       privs:    keystone.*:ALL
   notify:
@@ -62,7 +62,7 @@
       value:    /var/log/keystone
     - section:  database
       option:   connection
-      value:    "mysql://keystone:{{ keystone_dbpass }}@{{ controller_name }}/keystone"
+      value:    "mysql://keystone:{{ keystone_dbpass }}@{{ controller_hostname }}/keystone"
   notify:
     - Restart keystone
 
@@ -72,7 +72,7 @@
   meta: flush_handlers
 
 - name: Wait keystone
-  wait_for: host="{{ controller_name }}" port="{{ keystone_admin_port }}" delay=3
+  wait_for: host="{{ controller_hostname }}" port="{{ keystone_admin_port }}" delay=3
 
 - name: Remove useless SQLite db file
   file: path=/var/lib/keystone/keystone.db state=absent
@@ -196,9 +196,9 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ identity_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:{{ keystone_port }}/v2.0 \
-      --internalurl=http://{{ controller_name }}:{{ keystone_port }}/v2.0 \
-      --adminurl=http://{{ controller_name }}:{{ keystone_admin_port }}/v2.0
+      --publicurl=http://{{ controller_hostname }}:{{ keystone_port }}/v2.0 \
+      --internalurl=http://{{ controller_hostname }}:{{ keystone_port }}/v2.0 \
+      --adminurl=http://{{ controller_hostname }}:{{ keystone_admin_port }}/v2.0
   when: "endpoint_list.stdout.find('{{ identity_service_id.stdout }}') == -1"
   environment: openstack_service_env
 

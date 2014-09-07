@@ -1,10 +1,12 @@
 ---
 # defaults file for openstack_network
 
-controller_name: "controller"
+controller_hostname: "controller"
 my_management_ip: "{{ ansible_eth1.ipv4.address }}"
 my_tunnel_interface_ip: "{{ ansible_eth2.ipv4.address }}"
 external_interface: eth3
+my_external_interface_ip: "{{ ansible_eth3.ipv4.address }}"
+my_external_interface_mask: "{{ ansible_eth3.ipv4.netmask }}"
 
 keystone_admin_port: 35357
 keystone_port: 5000

@@ -1,7 +1,7 @@
 ---
 # defaults file for openstack_controller
 
-controller_name: controller
+controller_hostname: controller
 controller_management_ip: "{{ ansible_eth1.ipv4.address }}"
 
 keystone_admin_port: 35357

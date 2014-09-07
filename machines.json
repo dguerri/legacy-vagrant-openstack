@@ -25,14 +25,17 @@
           "netmask" : "255.255.255.0"
         },
         "external" : {
-          "type" : "public_network"
+          "type" : "public_network",
+          "auto_config": false
+
         }
       }
     },
     "compute1" : {
       "box_name" : "trusty64",
-      "vcpus" : 2,
-      "ram" : 2048,
+      "vcpus" : 4,
+      "ram" : 4096,
+      "nested_virt": true,
       "networks" : {
         "management" : {
           "ip" : "10.0.0.31",

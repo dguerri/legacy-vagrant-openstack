@@ -13,7 +13,7 @@
 - name: Create glance db
   mysql_db: name="{{ item }}"
             state=present
-            login_host="{{ controller_name }}"
+            login_host="{{ controller_hostname }}"
             login_user=root
             login_password="{{ mysql_root }}"
   with_items:
@@ -30,7 +30,7 @@
               password="{{ item.password }}"
               priv="{{ item.privs }}"
               state=present
-              login_host="{{ controller_name }}"
+              login_host="{{ controller_hostname }}"
               login_user=root
               login_password="{{ mysql_root }}"
               append_privs=yes
@@ -40,7 +40,7 @@
       password: "{{ glance_dbpass }}"
       privs:    glance.*:ALL
     - name:     glance
-      host:     "{{ controller_name }}"
+      host:     "{{ controller_hostname }}"
       password: "{{ glance_dbpass }}"
       privs:    glance.*:ALL
   notify:
@@ -58,13 +58,13 @@
   with_items:
     - section:  database
       option:   connection
-      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_name }}/glance"
+      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_hostname }}/glance"
     - section:  DEFAULT
       option:   rpc_backend
       value:    rabbit
     - section:  DEFAULT
       option:   rabbit_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  DEFAULT
       option:   rabbit_userid
       value:    openstack
@@ -73,10 +73,10 @@
       value:    "{{ rabbit_pass }}"
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
+      value:    "http://{{ controller_hostname }}:{{ keystone_port }}/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"
@@ -106,13 +106,13 @@
   with_items:
     - section:  database
       option:   connection
-      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_name }}/glance"
+      value:    "mysql://glance:{{ glance_dbpass }}@{{ controller_hostname }}/glance"
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
+      value:    "http://{{ controller_hostname }}:{{ keystone_port }}/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"
@@ -140,7 +140,7 @@
   meta: flush_handlers
 
 - name: Wait glance
-  wait_for: host="{{ controller_name }}" port="{{ glance_port }}" delay=3
+  wait_for: host="{{ controller_hostname }}" port="{{ glance_port }}" delay=3
 
 - name: Remove useless SQLite db file
   file: path=/var/lib/glance/glance.sqlite state=absent
@@ -198,8 +198,8 @@
   shell: >
     keystone endpoint-create \
       --service-id={{ image_service_id.stdout }} \
-      --publicurl=http://{{ controller_name }}:{{ glance_port }} \
-      --internalurl=http://{{ controller_name }}:{{ glance_port }} \
-      --adminurl=http://{{ controller_name }}:{{ glance_port }}
+      --publicurl=http://{{ controller_hostname }}:{{ glance_port }} \
+      --internalurl=http://{{ controller_hostname }}:{{ glance_port }} \
+      --adminurl=http://{{ controller_hostname }}:{{ glance_port }}
   when: "endpoint_list.stdout.find('{{ image_service_id.stdout }}') == -1"
   environment: openstack_service_env

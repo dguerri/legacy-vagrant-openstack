@@ -37,7 +37,7 @@
       value:    neutron.openstack.common.rpc.impl_kombu
     - section:  DEFAULT
       option:   rabbit_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  DEFAULT
       option:   rabbit_userid
       value:    openstack
@@ -55,10 +55,10 @@
       value:    True
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:{{ keystone_port }}"
+      value:    "http://{{ controller_hostname }}:{{ keystone_port }}"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"

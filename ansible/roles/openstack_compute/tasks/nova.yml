@@ -18,13 +18,13 @@
   with_items:
     - section:  database
       option:   connection
-      value:    "mysql://nova:{{ nova_dbpass }}@{{ controller_name }}/nova"
+      value:    "mysql://nova:{{ nova_dbpass }}@{{ controller_hostname }}/nova"
     - section:  DEFAULT
       option:   rpc_backend
       value:    rabbit
     - section:  DEFAULT
       option:   rabbit_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  DEFAULT
       option:   rabbit_userid
       value:    openstack
@@ -45,13 +45,13 @@
       value:    "{{ my_management_ip }}"
     - section:  DEFAULT
       option:   novncproxy_base_url
-      value:    "http://{{ controller_name }}:{{ novnc_port }}/vnc_auto.html"
+      value:    "http://{{ controller_hostname }}:{{ novnc_port }}/vnc_auto.html"
     - section:  DEFAULT
       option:   network_api_class
       value:    nova.network.neutronv2.api.API
     - section:  DEFAULT
       option:   neutron_url
-      value:    "http://{{ controller_name }}:{{ neutron_port }}"
+      value:    "http://{{ controller_hostname }}:{{ neutron_port }}"
     - section:  DEFAULT
       option:   neutron_auth_strategy
       value:    keystone
@@ -78,10 +78,10 @@
       value:    neutron
     - section:  keystone_authtoken
       option:   auth_uri
-      value:    "http://{{ controller_name }}:{{ keystone_port }}/v2.0"
+      value:    "http://{{ controller_hostname }}:{{ keystone_port }}/v2.0"
     - section:  keystone_authtoken
       option:   auth_host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
     - section:  keystone_authtoken
       option:   auth_port
       value:    "{{ keystone_admin_port }}"
@@ -99,7 +99,7 @@
       value:    "{{ nova_pass }}"
     - section:  glance
       option:   host
-      value:    "{{ controller_name }}"
+      value:    "{{ controller_hostname }}"
   notify:
     - Restart nova compute
 

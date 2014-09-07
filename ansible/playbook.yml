@@ -40,3 +40,4 @@
       nova_dbpass: "{{ NOVA_DBPASS }}"
       admin_token: "{{ ADMIN_TOKEN }}"
       nova_pass: "{{ NOVA_PASS}}"
+      neutron_pass: "{{ NOVA_PASS}}"
