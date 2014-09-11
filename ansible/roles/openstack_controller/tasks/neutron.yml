@@ -19,6 +19,8 @@
             login_password="{{ mysql_root }}"
   with_items:
     - neutron
+  notify:
+    - Sync neutron db
     - Restart neutron server
 
 

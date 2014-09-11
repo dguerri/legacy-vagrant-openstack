@@ -37,6 +37,13 @@
     - Restart nova conductor
     - Restart nova novncproxy
 
+- name: Sync neutron db
+  shell: neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head
+  sudo: yes
+  sudo_user: neutron
+  notify:
+    - Restart neutron server
+
 - name: Restart nova api
   service: name=nova-api state=restarted
 
